@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(Sample))]
+[CustomEditor(typeof(Handle))]
 public class SampleEditor : Editor
 {
-    Sample _sample;
+    Handle _sample;
 
     private void OnEnable()
     {
-        _sample = target as Sample;
+        _sample = target as Handle;
     }
 
     public override void OnInspectorGUI()
@@ -22,20 +22,13 @@ public class SampleEditor : Editor
 
             Vector3 pos;
 
-            if (_sample.LocalNodes.Length > 1)
+            if (_sample.LocalNodes.Length > 0)
             {
                 pos = _sample.LocalNodes[_sample.LocalNodes.Length - 1] + Vector3.right;
             }
             else
             {
-                if(_sample.LocalNodes.Length <= 0)
-                {
-                    pos = _sample.transform.position;
-                }
-                else
-                {
-                    pos = _sample.LocalNodes[0];
-                }
+                pos = _sample.transform.position + Vector3.right;
             }
 
             ArrayUtility.Add(ref _sample.LocalNodes, pos);
@@ -88,14 +81,14 @@ public class SampleEditor : Editor
     }
     private void OnSceneGUI()
     {
-        for(int i = 0; i < _sample.LocalNodes.Length; i++)
+        for (int i = 0; i < _sample.LocalNodes.Length; i++)
         {
             Vector3 pos;
 
-            if(Application.isPlaying)
+            if (Application.isPlaying)
             {
                 //エディタ実行時
-                pos = _sample.WorldNodes[i];
+                pos = _sample.LocalNodes[i];
             }
             else
             {
@@ -106,38 +99,16 @@ public class SampleEditor : Editor
 
             newPos = Handles.PositionHandle(pos, Quaternion.identity);
 
-            Handles.color = Color.red;
+            Handles.color = Color.yellow;
 
-            if (i == 0)
-            {
-                if (Application.isPlaying)
-                {
-                    Handles.DrawDottedLine(pos, _sample.WorldNodes[_sample.WorldNodes.Length - 1], 10);
-                }
-                else
-                {
-                    Handles.DrawDottedLine(pos, _sample.transform.TransformPoint(_sample.LocalNodes[_sample.LocalNodes.Length - 1]), 10);
-                }
-            }
-            else
-            {
-                if (Application.isPlaying)
-                {
-                    Handles.DrawDottedLine(pos, _sample.WorldNodes[i - 1], 10);
-                }
-                else
-                {
-                    Handles.DrawDottedLine(pos, _sample.transform.TransformPoint(_sample.LocalNodes[i - 1]), 10);
-                }
-            }
-
-            if(newPos != pos)
+            if (newPos != pos)
             {
                 Undo.RecordObject(target, "Moved Point");
                 _sample.LocalNodes[i] = _sample.transform.InverseTransformPoint(newPos);
             }
 
-            Handles.Label(pos, $"Node{i}:{pos}");
+            Handles.SphereHandleCap(0, pos, Quaternion.identity, 0.2f, EventType.Repaint);
+            Handles.Label(pos, $"Node{i}:{pos - _sample.transform.position}");
         }
     }
 }
