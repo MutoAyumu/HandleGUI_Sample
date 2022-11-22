@@ -6,6 +6,10 @@ using UnityEditor;
 [CustomEditor(typeof(Handle))]
 public class SampleEditor : Editor
 {
+    /* MEMO
+     using UnityEditorを追加したクラスはEditorフォルダーに属していないとエラーがでてしまう
+     */
+
     Handle _sample;
 
     private void OnEnable()
@@ -15,6 +19,7 @@ public class SampleEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        //インスペクターにボタンを追表示
         if (GUILayout.Button("Add"))
         {
             //値の保存を行う
@@ -22,15 +27,17 @@ public class SampleEditor : Editor
 
             Vector3 pos;
 
+            //一個前のノードから少しずらした位置に設定
             if (_sample.LocalNodes.Length > 0)
             {
                 pos = _sample.LocalNodes[_sample.LocalNodes.Length - 1] + Vector3.right;
             }
-            else
+            else//ノードが無かった時は自身を基準に設定
             {
                 pos = _sample.transform.position + Vector3.right;
             }
 
+            //ローカルノード配列に要素を追加
             ArrayUtility.Add(ref _sample.LocalNodes, pos);
         }
 
@@ -39,15 +46,20 @@ public class SampleEditor : Editor
 
         for (int i = 0; i < _sample.LocalNodes.Length; i++)
         {
+            //インスペクターが変更されたかを確認
             EditorGUI.BeginChangeCheck();
+            //ここからEndHorizontalまでを横並び表示させる
             EditorGUILayout.BeginHorizontal();
 
             int size = 50;
+            //ここからEndVerticalまでを縦並びに表示させる
             EditorGUILayout.BeginVertical(GUILayout.Width(size));
             EditorGUILayout.LabelField("Node " + i, GUILayout.Width(size));
 
+            //ボタンを追加
             if (GUILayout.Button("Delete", GUILayout.Width(size)))
             {
+                //何番目のボタンを消すかを設定
                 delete = i;
             }
             EditorGUILayout.EndVertical();
@@ -64,18 +76,22 @@ public class SampleEditor : Editor
 
             if (EditorGUI.EndChangeCheck())
             {
+                //インスペクターが変更されていたらシーンの変更をさせる
                 Undo.RecordObject(target, "Changed Position");
 
+                //配列のi番目の要素を変更
                 _sample.LocalNodes[i] = pos;
             }
         }
 
         EditorGUIUtility.labelWidth = 0;
 
+        //削除する番号が変更されていたら
         if (delete != -1)
         {
             Undo.RecordObject(target, "Delete Node");
 
+            //配列からi番目の要素を削除
             ArrayUtility.RemoveAt(ref _sample.LocalNodes, delete);
         }
     }
